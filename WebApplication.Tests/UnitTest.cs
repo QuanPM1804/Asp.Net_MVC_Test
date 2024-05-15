@@ -120,4 +120,38 @@ public class RookiesControllerTests
         Assert.Null(redirectToActionResult.ControllerName);
         Assert.Equal("Index", redirectToActionResult.ActionName);
     }
+    [Fact]
+    public void EditPost_WithInvalidModel_ReturnsViewResult()
+    {
+        var personId = 1;
+        var existingPerson = _persons.First(p => p.Id == personId);
+        var updatedPerson = new Person { Id = existingPerson.Id, FirstName = null, LastName = existingPerson.LastName, Gender = existingPerson.Gender, DateOfBirth = existingPerson.DateOfBirth, PhoneNumber = existingPerson.PhoneNumber, BirthPlace = existingPerson.BirthPlace, IsGraduated = existingPerson.IsGraduated };
+        _controller.ModelState.AddModelError("FirstName", "The FirstName field is required");
+        var result = _controller.Edit(personId, updatedPerson);
+        var viewResult = Assert.IsType<ViewResult>(result);
+        var model = Assert.IsType<Person>(viewResult.Model);
+        Assert.Equal(updatedPerson, model);
+    }
+    [Fact]
+    public void Delete_WithValidId_RedirectsToIndexWithMessage()
+    {
+        var personId = 1;
+        var expectedPerson = _persons.First(p => p.Id == personId);
+        _mockRepository.Setup(repo => repo.GetById(personId)).Returns(expectedPerson);
+        var result = _controller.Delete(personId);
+        var redirectToActionResult = Assert.IsType<RedirectToActionResult>(result);
+        Assert.Null(redirectToActionResult.ControllerName);
+        Assert.Equal("Index", redirectToActionResult.ActionName);
+        Assert.True(redirectToActionResult.RouteValues.ContainsKey("message"));
+        Assert.Equal($"Person {personId} was removed from the list successfully!", redirectToActionResult.RouteValues["message"]);
+    }
+
+    [Fact]
+    public void Delete_WithInvalidId_ReturnsNotFoundResult()
+    {
+        var personId = 100;
+        _mockRepository.Setup(repo => repo.GetById(personId)).Returns((Person)null);
+        var result = _controller.Delete(personId);
+        Assert.IsType<NotFoundResult>(result);
+    }
 }
