@@ -1,6 +1,4 @@
-﻿using Asp_MVC1.Models;
-
-namespace Asp_MVC1.Models
+﻿namespace Asp_MVC1.Models
 {
     public class Person
     {
